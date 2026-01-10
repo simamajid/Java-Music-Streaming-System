@@ -1,6 +1,6 @@
 package musicstreaming.users;
 
-import musicstreaming.media.Media;
+import musicStreaming.media.Media;
 
 
 

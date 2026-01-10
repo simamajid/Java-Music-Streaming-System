@@ -1,7 +1,7 @@
 package musicStreaming.users;
 
 import musicstreaming.users.User;
-import musicstreaming.media.Media;
+import musicStreaming.media.Media;
 
 /**
  * CONCRETE CLASS: PremiumUser

@@ -2,7 +2,7 @@ package musicstreaming.users;
 
 import java.util.ArrayList;
 import java.util.List;
-import musicstreaming.media.Media;
+import musicStreaming.media.Media;
 import musicstreaming.playlists.Library;
 import musicstreaming.playlists.Playlist;
 

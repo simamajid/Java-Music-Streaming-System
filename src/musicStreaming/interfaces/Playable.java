@@ -9,5 +9,5 @@ package musicStreaming.interfaces;
  * @author PREDATOR
  */
 public interface Playable {
-    
+    void play();
 }
