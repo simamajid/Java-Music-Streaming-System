@@ -20,6 +20,7 @@ import musicstreaming.media.Media;
  * - Inheritance: Extends the abstract User class
  * - Method Overriding: Provides specific implementations of abstract methods
  * - Polymorphism: Can be treated as a User type
+ * @author Sima
  */
 public class FreeUser extends User {
     

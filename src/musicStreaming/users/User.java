@@ -25,6 +25,7 @@ import musicstreaming.playlists.Playlist;
  * - Encapsulation: Private fields with public getters/setters
  * - Polymorphism: Different implementations in child classes
  * - Inheritance: FreeUser and PremiumUser inherit from User
+ * @author Sima
  */
 public abstract class User {
     
