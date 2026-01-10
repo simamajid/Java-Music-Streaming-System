@@ -123,9 +123,11 @@ public abstract class User {
      * Searches for media in the user's personal library.
      * Delegates the search to the Library class.
      */
-    public void searchLibrary(String keyword) {
-        library.search(keyword);
-    }
+    
+//    public void searchLibrary(String keyword) {  // need searchable in library class!!!!!!!!!!!!!!!!!!!!!!!!!!
+//        library.search(keyword);
+//    }
+    
     
     /**
      * METHOD: displayUserInfo
