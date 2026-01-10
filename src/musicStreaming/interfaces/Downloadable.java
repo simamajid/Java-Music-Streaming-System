@@ -7,8 +7,16 @@ package musicStreaming.interfaces;
 
 /**
  *
- * @author PREDATOR
+ * @author Fro Wrya M Salih
+ */
+
+/**
+ * Interface for media that can be downloaded
  */
 public interface Downloadable {
-    void download();
+    /**
+     * Download the media for offline use
+     * @return true if download successful, false otherwise
+     */
+    boolean download();
 }
