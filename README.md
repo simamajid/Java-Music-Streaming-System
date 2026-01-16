@@ -18,7 +18,7 @@ Encapsulation (private fields, getters/setters)
 •	Interfaces (Playable, Searchable, Downloadable)
 •	Generics (Playlist<T>, Library<T>)
 How to Run the Project
-1. Open the project in IntelliJ IDEA or Eclipse
+1. Open the project in NetBeans
 2. Compile all Java files
 3. Run the Main  class
 Package Structure
