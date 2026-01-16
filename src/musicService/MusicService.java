@@ -1,54 +1,78 @@
-package musicServices;
+package musicstreaming.services;
 
-import java.util.ArrayList;
-import java.util.List;
 import musicStreaming.interfaces.Searchable;
-import musicStreaming.media.Album;
-import musicStreaming.media.Artist;
-import musicStreaming.media.Media;
-import musicStreaming.media.Podcast;
-import musicStreaming.media.Song;
+import musicStreaming.media.*;
+import java.util.ArrayList;
 
 /**
- * Main service class that manages all media in the system
- * Acts as the "database" of the application
+ * MusicService - Central system controller for the music streaming platform
+ * 
+ * WHY THIS CLASS EXISTS:
+ * In a music streaming system, we need a central place to store ALL available
+ * media (songs, podcasts, artists, albums). This class acts as the "database"
+ * or "brain" of the system. Without it, each user would need to maintain their
+ * own copy of all media, which would be inefficient and inconsistent.
+ * 
+ * DESIGN RATIONALE:
+ * - Implements Searchable because the system needs search capability
+ * - Uses ArrayList for collections because we don't know how many items in advance
+ * - Centralized storage ensures all users see the same catalog
+ * - Similar to the Basket class pattern from Lecture 04
+ * 
+ * RESPONSIBILITIES:
+ * - Store and manage all system media
+ * - Provide search functionality across all media types
+ * - Act as single source of truth for available content
+ * 
+ * @author Member 4
+ * @version 1.0
  */
 public class MusicService implements Searchable {
     
-    // Fields - Store all system data
-    private List<Song> allSongs;
-    private List<Podcast> allPodcasts;
-    private List<Artist> allArtists;
-    private List<Album> allAlbums;
+    // WHY private: Encapsulation - protect internal data structure
+    // WHY ArrayList: Dynamic sizing, don't know how many items in advance
+    // WHY separate lists: Different types need different search/filter logic
+    private ArrayList<Song> allSongs;
+    private ArrayList<Podcast> allPodcasts;
+    private ArrayList<Artist> allArtists;
+    private ArrayList<Album> allAlbums;
     
-    // Constructor
+    /**
+     * Constructor initializes empty collections.
+     * 
+     * WHY THIS APPROACH:
+     * - Initialize all lists to empty (not null) to prevent NullPointerException
+     * - User can immediately start adding items without additional setup
+     * - Follows defensive programming principle
+     * - Pattern from Lecture 01 (initialize in constructor)
+     */
     public MusicService() {
-        this.allSongs = new ArrayList<>();
-        this.allPodcasts = new ArrayList<>();
-        this.allArtists = new ArrayList<>();
-        this.allAlbums = new ArrayList<>();
+        this.allSongs = new ArrayList<Song>();
+        this.allPodcasts = new ArrayList<Podcast>();
+        this.allArtists = new ArrayList<Artist>();
+        this.allAlbums = new ArrayList<Album>();
         
-        // Initialize with some sample data
-        initializeSampleData();
+        System.out.println("Music Streaming Service initialized!");
     }
     
-    // Initialize sample data (for testing)
-    private void initializeSampleData() {
-        // Create artists
-        Artist coldplay = new Artist("A001", "Coldplay");
-        Artist adele = new Artist("A002", "Adele");
-        addArtist(coldplay);
-        addArtist(adele);
-        
-        // Create songs (assuming Song constructor exists)
-        // Song song1 = new Song("S001", "Fix You", 295, coldplay, "Rock");
-        // addSong(song1);
-        
-        System.out.println("Sample data initialized!");
-    }
-    
-    // ==================== ADD METHODS ====================
-    
+    /**
+     * Add a song to the system catalog.
+     * 
+     * WHY THIS METHOD:
+     * - System needs to be populated with content before users can access it
+     * - Validates input to maintain data integrity (no null, no duplicates)
+     * - Provides feedback to confirm addition
+     * 
+     * WHY CHECK FOR NULL:
+     * - Prevents NullPointerException later when iterating
+     * - Defensive programming principle
+     * 
+     * WHY CHECK FOR DUPLICATES:
+     * - Prevents same song appearing multiple times in searches
+     * - Maintains clean catalog
+     * 
+     * @param song the song to add to the system
+     */
     public void addSong(Song song) {
         if (song != null && !allSongs.contains(song)) {
             allSongs.add(song);
@@ -56,6 +80,15 @@ public class MusicService implements Searchable {
         }
     }
     
+    /**
+     * Add a podcast to the system catalog.
+     * 
+     * WHY THIS METHOD:
+     * - Same rationale as addSong but for podcasts
+     * - Keeps songs and podcasts in separate lists for efficient filtering
+     * 
+     * @param podcast the podcast to add
+     */
     public void addPodcast(Podcast podcast) {
         if (podcast != null && !allPodcasts.contains(podcast)) {
             allPodcasts.add(podcast);
@@ -63,6 +96,16 @@ public class MusicService implements Searchable {
         }
     }
     
+    /**
+     * Add an artist to the system.
+     * 
+     * WHY THIS METHOD:
+     * - Artists are searchable entities in the system
+     * - Users want to find music by artist name
+     * - Maintains artist catalog separate from media catalog
+     * 
+     * @param artist the artist to add
+     */
     public void addArtist(Artist artist) {
         if (artist != null && !allArtists.contains(artist)) {
             allArtists.add(artist);
@@ -70,6 +113,16 @@ public class MusicService implements Searchable {
         }
     }
     
+    /**
+     * Add an album to the system.
+     * 
+     * WHY THIS METHOD:
+     * - Albums are browsable/searchable collections
+     * - Users often search for albums, not individual songs
+     * - Maintains album catalog for organized browsing
+     * 
+     * @param album the album to add
+     */
     public void addAlbum(Album album) {
         if (album != null && !allAlbums.contains(album)) {
             allAlbums.add(album);
@@ -77,46 +130,83 @@ public class MusicService implements Searchable {
         }
     }
     
-    // ==================== SEARCH METHODS ====================
-    
     /**
-     * Main search method (implements Searchable interface)
-     * Searches through both songs and podcasts
+     * Main search method - implements Searchable interface contract.
+     * Searches across both songs and podcasts using polymorphism.
+     * 
+     * WHY THIS METHOD:
+     * - Fulfills Searchable interface contract (required method)
+     * - Provides unified search across all playable media
+     * - Uses polymorphism (Lecture 04) - treats Song and Podcast uniformly as Media
+     * - Case-insensitive for better user experience
+     * 
+     * WHY RETURN ArrayList<Media>:
+     * - Polymorphic return type can hold both Song and Podcast
+     * - Caller doesn't need to know specific types
+     * - Demonstrates polymorphism from Lecture 04
+     * 
+     * WHY VALIDATE INPUT:
+     * - Empty search would return all media (expensive, unhelpful)
+     * - Prevents crashes from null keyword
+     * 
+     * WHY toLowerCase:
+     * - Case-insensitive matching ("coldplay" finds "Coldplay")
+     * - Better user experience
+     * 
+     * DESIGN PATTERN: Template Method (search both collections same way)
+     * 
+     * @param keyword the search term (searches titles and artists)
+     * @return ArrayList of Media matching the keyword
      */
     @Override
-    public List<Media> search(String keyword) {
-        List<Media> results = new ArrayList<>();
+    public ArrayList<Media> search(String keyword) {
+        ArrayList<Media> results = new ArrayList<Media>();
         
+        // Validate input - defensive programming
         if (keyword == null || keyword.trim().isEmpty()) {
+            System.out.println("Please enter a valid search keyword.");
             return results;
         }
         
         String lowerKeyword = keyword.toLowerCase();
         
-        // Search songs
+        // Search songs - polymorphism in action (Song treated as Media)
         for (Song song : allSongs) {
-            if (song.getTitle().toLowerCase().contains(lowerKeyword) ||
-                song.getArtist().toLowerCase().contains(lowerKeyword)) {
-                results.add(song);
+            if (song.getTitle().toLowerCase().contains(lowerKeyword)) {
+                results.add(song);  // Upcasting to Media
             }
         }
         
-        // Search podcasts
+        // Search podcasts - polymorphism (Podcast treated as Media)
         for (Podcast podcast : allPodcasts) {
-            if (podcast.getTitle().toLowerCase().contains(lowerKeyword) ||
-                podcast.getHost().toLowerCase().contains(lowerKeyword)) {
-                results.add(podcast);
+            if (podcast.getTitle().toLowerCase().contains(lowerKeyword)) {
+                results.add(podcast);  // Upcasting to Media
             }
         }
         
+        System.out.println("Search for '" + keyword + "' found " + 
+                         results.size() + " results.");
         return results;
     }
     
     /**
-     * Search only songs
+     * Search only songs (more specific than general search).
+     * 
+     * WHY THIS METHOD:
+     * - Sometimes users want ONLY songs, not podcasts
+     * - Searches more fields (title, artist, genre) for better results
+     * - More specific return type (ArrayList<Song> not Media)
+     * 
+     * WHY SEPARATE FROM search():
+     * - Different return type (Song vs Media)
+     * - Different search fields (includes genre)
+     * - More specific functionality for specific use case
+     * 
+     * @param keyword search term
+     * @return ArrayList of Songs only
      */
-    public List<Song> searchSongs(String keyword) {
-        List<Song> results = new ArrayList<>();
+    public ArrayList<Song> searchSongs(String keyword) {
+        ArrayList<Song> results = new ArrayList<Song>();
         
         if (keyword == null || keyword.trim().isEmpty()) {
             return results;
@@ -124,6 +214,7 @@ public class MusicService implements Searchable {
         
         String lowerKeyword = keyword.toLowerCase();
         
+        // Search multiple fields for better results
         for (Song song : allSongs) {
             if (song.getTitle().toLowerCase().contains(lowerKeyword) ||
                 song.getArtist().toLowerCase().contains(lowerKeyword) ||
@@ -136,10 +227,18 @@ public class MusicService implements Searchable {
     }
     
     /**
-     * Search only podcasts
+     * Search only podcasts.
+     * 
+     * WHY THIS METHOD:
+     * - Parallel to searchSongs for consistency
+     * - Searches podcast-specific fields (host name)
+     * - Users may want to browse only podcasts
+     * 
+     * @param keyword search term
+     * @return ArrayList of Podcasts only
      */
-    public List<Podcast> searchPodcasts(String keyword) {
-        List<Podcast> results = new ArrayList<>();
+    public ArrayList<Podcast> searchPodcasts(String keyword) {
+        ArrayList<Podcast> results = new ArrayList<Podcast>();
         
         if (keyword == null || keyword.trim().isEmpty()) {
             return results;
@@ -158,10 +257,18 @@ public class MusicService implements Searchable {
     }
     
     /**
-     * Search artists by name
+     * Search for artists by name.
+     * 
+     * WHY THIS METHOD:
+     * - Users often search by artist, not song title
+     * - Once found, can browse all artist's work
+     * - Common use case in music apps
+     * 
+     * @param keyword artist name to search for
+     * @return ArrayList of matching artists
      */
-    public List<Artist> searchArtists(String keyword) {
-        List<Artist> results = new ArrayList<>();
+    public ArrayList<Artist> searchArtists(String keyword) {
+        ArrayList<Artist> results = new ArrayList<Artist>();
         
         if (keyword == null || keyword.trim().isEmpty()) {
             return results;
@@ -179,80 +286,101 @@ public class MusicService implements Searchable {
     }
     
     /**
-     * Search albums by title
+     * Get all songs in the system.
+     * 
+     * WHY THIS METHOD:
+     * - UI needs to display full catalog
+     * - Browse functionality requires access to all items
+     * - Encapsulation: provides controlled access to private field
+     * 
+     * WHY NOT RETURN COPY:
+     * - For simplicity in student project
+     * - Production code might return copy to prevent external modification
+     * 
+     * @return ArrayList of all songs
      */
-    public List<Album> searchAlbums(String keyword) {
-        List<Album> results = new ArrayList<>();
-        
-        if (keyword == null || keyword.trim().isEmpty()) {
-            return results;
-        }
-        
-        String lowerKeyword = keyword.toLowerCase();
-        
-        for (Album album : allAlbums) {
-            if (album.getTitle().toLowerCase().contains(lowerKeyword) ||
-                album.getArtist().getName().toLowerCase().contains(lowerKeyword)) {
-                results.add(album);
-            }
-        }
-        
-        return results;
-    }
-    
-    // ==================== GETTER METHODS ====================
-    
-    public List<Song> getAllSongs() {
-        return new ArrayList<>(allSongs);
-    }
-    
-    public List<Podcast> getAllPodcasts() {
-        return new ArrayList<>(allPodcasts);
-    }
-    
-    public List<Artist> getAllArtists() {
-        return new ArrayList<>(allArtists);
-    }
-    
-    public List<Album> getAllAlbums() {
-        return new ArrayList<>(allAlbums);
-    }
-    
-    // ==================== UTILITY METHODS ====================
-    
-    /**
-     * Get song by ID
-     */
-    public Song getSongById(String id) {
-        for (Song song : allSongs) {
-            if (song.getId().equals(id)) {
-                return song;
-            }
-        }
-        return null;
+    public ArrayList<Song> getAllSongs() {
+        return allSongs;
     }
     
     /**
-     * Get artist by ID
+     * Get all podcasts in the system.
+     * 
+     * WHY THIS METHOD:
+     * - Same rationale as getAllSongs
+     * - Separate method for type safety
+     * 
+     * @return ArrayList of all podcasts
      */
-    public Artist getArtistById(String id) {
-        for (Artist artist : allArtists) {
-            if (artist.getArtistId().equals(id)) {
-                return artist;
-            }
-        }
-        return null;
+    public ArrayList<Podcast> getAllPodcasts() {
+        return allPodcasts;
     }
     
     /**
-     * Display system statistics
+     * Get all artists in the system.
+     * 
+     * @return ArrayList of all artists
+     */
+    public ArrayList<Artist> getAllArtists() {
+        return allArtists;
+    }
+    
+    /**
+     * Get all albums in the system.
+     * 
+     * @return ArrayList of all albums
+     */
+    public ArrayList<Album> getAllAlbums() {
+        return allAlbums;
+    }
+    
+    /**
+     * Display system statistics summary.
+     * 
+     * WHY THIS METHOD:
+     * - Useful for debugging and testing
+     * - Quick overview of system state
+     * - Demonstrates encapsulation (counts internal data)
+     * 
+     * WHY PRINT DIRECTLY:
+     * - Simple text-based interface for educational project
+     * - In GUI app, would return formatted data instead
+     * 
+     * DESIGN NOTE: In production, this would return a Statistics object
+     * instead of printing directly (separation of concerns)
      */
     public void displayStatistics() {
-        System.out.println("\n===== MUSIC STREAMING SYSTEM STATS =====");
-        System.out.println("Total Songs: " + allSongs.size());
+        System.out.println("\n========================================");
+        System.out.println("   MUSIC STREAMING SYSTEM STATISTICS");
+        System.out.println("========================================");
+        System.out.println("Total Songs:    " + allSongs.size());
         System.out.println("Total Podcasts: " + allPodcasts.size());
-        System.out.println("Total Artists: " + allArtists.size());
-        System.out.println("Total Albums: " + allAlbums.size());
+        System.out.println("Total Artists:  " + allArtists.size());
+        System.out.println("Total Albums:   " + allAlbums.size());
         System.out.println("========================================\n");
+    }
+    
+    /**
+     * Display all artists in the system.
+     * 
+     * WHY THIS METHOD:
+     * - Testing and demonstration purposes
+     * - Shows toString() polymorphism (calls Artist's toString)
+     * - Useful during development
+     * 
+     * WHY CHECK isEmpty:
+     * - Better user experience (inform user if no data)
+     * - Prevents confusing blank output
+     */
+    public void displayAllArtists() {
+        System.out.println("\n=== ALL ARTISTS ===");
+        if (allArtists.isEmpty()) {
+            System.out.println("No artists available.");
+        } else {
+            for (int i = 0; i < allArtists.size(); i++) {
+                System.out.println((i + 1) + ". " + allArtists.get(i));
+            }
+        }
+        System.out.println();
     }
 }
